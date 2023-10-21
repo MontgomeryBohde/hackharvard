@@ -1,8 +1,9 @@
 'use client'
 
+import React from 'react';
 import dynamic from 'next/dynamic';
 
-const DynamicGlobeComponent = dynamic(() => import('../../components/globe'), {
+const DynamicGlobeComponent = dynamic(() => import('../../components/globe2'), {
   ssr: false
 });
 
