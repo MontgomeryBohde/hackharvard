@@ -1,45 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'; // Import OrbitControls
+'use client'
 
-function Globe() {
-  const globeRef = useRef();
+import React, { useEffect, useRef } from 'react';
+import Globe from 'globe.gl';  
+
+function GlobeComponent() {
+  const globeEl = useRef(null);
 
   useEffect(() => {
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
+    const myGlobe = Globe()   
+      .globeImageUrl('/globe.jpeg')(globeEl.current);  
 
-    const globe = new THREE.Mesh(
-      new THREE.SphereGeometry(2.5, 32, 32),
-      new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/globe.jpeg') })
-    );
-
-    camera.position.z = 5;
-    scene.add(globe);
-
-    // Create an instance of OrbitControls and attach it to the camera
-    const controls = new OrbitControls(camera, renderer.domElement);
-
-    // Disable auto rotation
-    controls.autoRotate = false;
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    globeRef.current.appendChild(renderer.domElement);
-
-    const animate = () => {
-      requestAnimationFrame(animate);
-
-      // Handle mouse interaction with controls
-      controls.update();
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
+    window.addEventListener('resize', () => {
+      myGlobe.width(window.innerWidth).height(window.innerHeight);
+    });
   }, []);
 
-  return <div ref={globeRef}></div>;
+  return <div ref={globeEl} style={{ width: '100%', height: '100vh' }}></div>;
 }
 
-export default Globe;
+export default GlobeComponent;

@@ -1,11 +1,16 @@
 'use client'
-import Globe from '../../components/globe';
+
+import dynamic from 'next/dynamic';
+
+const DynamicGlobeComponent = dynamic(() => import('../../components/globe'), {
+  ssr: false
+});
 
 function Home() {
   return (
     <div>
       <h1>My Globe App</h1>
-      <Globe />
+      <DynamicGlobeComponent />
     </div>
   );
 }
