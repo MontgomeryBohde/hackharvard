@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import * as satellite from 'satellite.js';
 import * as THREE from 'three';
-import {fetchNavSats, fetchImgSats, fetchComSats, fetchWeatherSats} from '../src/app/requests'
+//import {fetchNavSats, fetchImgSats, fetchComSats, fetchWeatherSats} from '../src/app/requests'
 
 const EARTH_RADIUS_KM = 6371; // km
 const SAT_SIZE = 80; // km
