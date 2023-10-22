@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
 export async function fetchNavSats(lat, lgt){
-    const url = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/50&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/50&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -18,7 +18,7 @@ export async function fetchNavSats(lat, lgt){
 }
 
 export async function fetchImgSats(lat, lgt){
-    const url = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/48&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/48&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -49,7 +49,7 @@ export async function fetchImgSats(lat, lgt){
     }
 
     // if we have less than 2, we need to query next endpoint
-    const url2 = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/8&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url2 = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/8&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
 
     const response2 = await fetch(url2);
     if (!response2.ok) {
@@ -77,7 +77,7 @@ export async function fetchImgSats(lat, lgt){
 
     // if we have less than 2, we need to query next endpoint
 
-    const url3 = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/7&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url3 = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/7&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
 
     const response3 = await fetch(url3);
     if (!response3.ok) {
@@ -106,7 +106,7 @@ export async function fetchImgSats(lat, lgt){
 
     // if we have less than 2, we need to query next endpoint
 
-    const url4 = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/6&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url4 = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/6&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
 
     const response4 = await fetch(url4);
     if (!response4.ok) {
@@ -137,7 +137,7 @@ export async function fetchImgSats(lat, lgt){
 }
 
 export async function fetchComSats(lat, lgt){
-    const url = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/52&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/52&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -154,7 +154,7 @@ export async function fetchComSats(lat, lgt){
 }
 
 export async function fetchWeatherSats(lat, lgt){
-    const url = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/5&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/5&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -185,7 +185,7 @@ export async function fetchWeatherSats(lat, lgt){
     }
 
     // if we have less than 2, we need to query next endpoint
-    const url2 = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/4&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url2 = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/4&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
 
     const response2 = await fetch(url2);
     if (!response2.ok) {
@@ -213,7 +213,7 @@ export async function fetchWeatherSats(lat, lgt){
 
     // if we have less than 2, we need to query next endpoint
 
-    const url3 = 'https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/3&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
+    const url3 = 'https://justcors.com/tl_a9f9c84/https://api.n2yo.com/rest/v1/satellite/above/' + lat + '/' + lgt + '/0/90/3&apiKey=57YL9A-FF4FYG-HPLKZ9-5550/';
 
     const response3 = await fetch(url3);
     if (!response3.ok) {

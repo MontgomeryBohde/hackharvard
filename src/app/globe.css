@@ -1,0 +1,44 @@
+.introduction-panel {
+    position: absolute;
+    top: 10%;
+    right: -400px; /* starts hidden on the right */
+    width: 350px;
+    height: 80%;
+    background: linear-gradient(150deg, #f5f7fa, #c3cfe2);
+    padding: 20px;
+    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.5s ease-in-out;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 15px 0 0 15px;
+    overflow-y: auto;
+  }
+  
+  .introduction-panel.active {
+    right: 10px; /* slides in */
+  }
+  
+  h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  
+  .highlight {
+    color: #007BFF;
+    font-weight: bold;
+  }
+  
+  .icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  
