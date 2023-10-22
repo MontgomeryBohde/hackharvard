@@ -13,6 +13,54 @@ function GlobeComponent() {
   const [manualPoints, setManualPoints] = useState([]);
   const [globeRadius, setGlobeRadius] = useState();
   const [time, setTime] = useState(new Date());
+  const [polygonVertices, setPolygonVertices] = useState([]);
+  const raycaster = new THREE.Raycaster();
+
+  const handleMouseDown = (e) => {
+    const coords = globeEl.current.getCoords(e.clientX, e.clientY);
+    if (coords) {
+      setPolygonVertices([...polygonVertices, coords]);
+    }
+  };
+
+  useEffect(() => {
+    const container = globeEl.current ? globeEl.current.canvas : null;
+    if (container) {
+      container.addEventListener('mousedown', handleMouseDown);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('mousedown', handleMouseDown);
+      }
+    };
+}, [polygonVertices]);
+
+
+  const polygonMaterial = useMemo(() => new THREE.LineBasicMaterial({
+    color: 'yellow',
+    linewidth: 2
+  }), []);
+
+  const polygonGeometry = useMemo(() => {
+    if (polygonVertices.length > 1) {
+      const vertices = polygonVertices.map(v => {
+        const { x, y, z } = globeEl.current.getXYZfromLatLngAlt(v.lat, v.lng, v.alt || 0);
+        return new THREE.Vector3(x, y, z);
+      });
+
+      const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
+      return geometry;
+    }
+}, [polygonVertices]);
+
+
+  const getPolygonLine = () => {
+    if (polygonGeometry) {
+      return new THREE.Line(polygonGeometry, polygonMaterial);
+    }
+  };
+
 
   useEffect(() => {
     // time ticker
@@ -126,12 +174,43 @@ function GlobeComponent() {
         objectAltitude="alt"
         objectFacesSurface={false}
         objectThreeObject={getObject3D}
+        customLayerData={polygonVertices.length > 1 ? [{}] : []}
+        customThreeObject={getPolygonLine}
       />
-      <div style={{ position: 'absolute', fontSize: '12px', fontFamily: 'sans-serif', padding: '5px', borderRadius: '3px', backgroundColor: 'rgba(200, 200, 200, 0.1)', color: 'lavender', bottom: '10px', right: '10px' }}>
+      {polygonVertices.map((vertex, index) => (
+        <div
+          key={index}
+          style={{
+            position: 'absolute',
+            top: vertex.y,
+            left: vertex.x,
+            fontSize: '12px',
+            fontFamily: 'sans-serif',
+            backgroundColor: 'yellow',
+            borderRadius: '50%',
+            width: '10px',
+            height: '10px',
+            transform: 'translate(-50%, -50%)'
+          }}
+        ></div>
+      ))}
+      <div 
+        style={{
+          position: 'absolute', 
+          fontSize: '12px', 
+          fontFamily: 'sans-serif', 
+          padding: '5px', 
+          borderRadius: '3px', 
+          backgroundColor: 'rgba(200, 200, 200, 0.1)', 
+          color: 'lavender', 
+          bottom: '10px', 
+          right: '10px'
+        }}>
         {time.toString()}
       </div>
     </div>
   );
+
 }
 
 export default GlobeComponent;

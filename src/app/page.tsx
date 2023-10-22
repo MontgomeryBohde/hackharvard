@@ -3,7 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-const DynamicGlobeComponent = dynamic(() => import('../../components/globe6'), {
+const DynamicGlobeComponent = dynamic(() => import('../../components/globe7'), {
   ssr: false
 });
 
