@@ -21,6 +21,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-globe.gl": "^2.27.0",
+    "satellite.js": "^5.0.0",
     "three": "^0.157.0",
     "three-orbitcontrols": "^2.110.3"
   },
