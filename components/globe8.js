@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import {fetchNavSats, fetchImgSats, fetchComSats, fetchWeatherSats} from '../src/app/requests'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faHandPointer } from '@fortawesome/free-solid-svg-icons';
+import { redirect } from 'next/navigation';
 const rsatcount = 10; // Number of random satellites to spawn
 const rsatoff = 0.5; // Max lat/lng deviation for the random satellites
 const EARTH_RADIUS_KM = 6371; // km
@@ -72,13 +73,13 @@ function saty(lat, lng, type, count = 5) {
       '1 00000U 00000A 00000.00000000 00000.00000000 00000.00000000 0.00000000 0.00000000 0.00000000 0',
       '2 00000 000.0000 000.0000 0000000 000.0000 000.0000 00.00000000000000'
     ),
-    
+    color: red,
     satid: Date.now() + idx,  // unique ID based on the current time and the index
     satname: `${type.toUpperCase()} SAT ${idx}`,
     intDesignator: '2023-001A',  // example designator
     launchDate: '2023-01-01',  // example launch date
-    satlat: lat + (Math.random() - 0.5) * 2,  // latitude with a small random offset
-    satlng: lng + (Math.random() - 0.5) * 2,  // longitude with a small random offset
+    satlat: lat + (Math.random() - 0.5) * 100,  // latitude with a small random offset
+    satlng: lng + (Math.random() - 0.5) * 100,  // longitude with a small random offset
     satalt: 35789.6607,  // fixed altitude for this example
     type  // custom type field (e.g., 'nav', 'img', etc.)
   }));
@@ -88,8 +89,9 @@ const gena = (lat, lng, count = rsatcount) => {
   return Array.from({ length: count }).map((_, idx) => {
     return {
       name: `SAT ${idx}`,
-      lat: lat + (Math.random() - 0.5) * 2 * rsatoff,
-      lng: lng + (Math.random() - 0.5) * 2 * rsatoff,
+      lat: lat + (Math.random() - 0.5) * 20 * rsatoff,
+      lng: lng + (Math.random() - 0.5) * 20 * rsatoff,
+      color: 'red',
       alt: 0,
       type: 'random', // Added this type to differentiate the random satellites (you can style them differently if you want)
     };
@@ -161,10 +163,11 @@ function GlobeComponent() {
     });
   }, [satData, time]);
   const getObjectThreeObject = (d) => {
+    console.log(d);  
     if (!globeRadius) return undefined;
 
     let geometry;
-    let color;
+    let color = 'green';
 
     if (d.isUserPoint) {
       const actualRadius = d.radius || (SAT_SIZE * globeRadius / EARTH_RADIUS_KM);  // Double the size for user points
