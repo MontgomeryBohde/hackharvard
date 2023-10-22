@@ -2,65 +2,18 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import * as satellite from 'satellite.js';
 import * as THREE from 'three';
+import {fetchNavSats, fetchImgSats, fetchComSats, fetchWeatherSats} from '../src/app/requests'
 
 const EARTH_RADIUS_KM = 6371; // km
 const SAT_SIZE = 80; // km
-const TIME_STEP = 1; // per frame
+const TIME_STEP = 3 * 100; // per frame
 
 function GlobeComponent() {
   const globeEl = useRef();
   const [satData, setSatData] = useState([]);
-  const [manualPoints, setManualPoints] = useState([]);
   const [globeRadius, setGlobeRadius] = useState();
   const [time, setTime] = useState(new Date());
-  const [polygonVertices, setPolygonVertices] = useState([]);
-  const raycaster = new THREE.Raycaster();
-
-  const handleMouseDown = (e) => {
-    const coords = globeEl.current.getCoords(e.clientX, e.clientY);
-    if (coords) {
-      setPolygonVertices([...polygonVertices, coords]);
-    }
-  };
-
-  useEffect(() => {
-    const container = globeEl.current ? globeEl.current.canvas : null;
-    if (container) {
-      container.addEventListener('mousedown', handleMouseDown);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener('mousedown', handleMouseDown);
-      }
-    };
-}, [polygonVertices]);
-
-
-  const polygonMaterial = useMemo(() => new THREE.LineBasicMaterial({
-    color: 'yellow',
-    linewidth: 2
-  }), []);
-
-  const polygonGeometry = useMemo(() => {
-    if (polygonVertices.length > 1) {
-      const vertices = polygonVertices.map(v => {
-        const { x, y, z } = globeEl.current.getXYZfromLatLngAlt(v.lat, v.lng, v.alt || 0);
-        return new THREE.Vector3(x, y, z);
-      });
-
-      const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
-      return geometry;
-    }
-}, [polygonVertices]);
-
-
-  const getPolygonLine = () => {
-    if (polygonGeometry) {
-      return new THREE.Line(polygonGeometry, polygonMaterial);
-    }
-  };
-
+  
 
   useEffect(() => {
     // time ticker
@@ -81,39 +34,23 @@ function GlobeComponent() {
           .filter((d) => d)
           .map((tle) => tle.split('\n'));
 
-        const sats = tleData.map(([name, ...tle]) => ({
-          satrec: satellite.twoline2satrec(...tle),
-          name: name.trim().replace(/^0 /, ''),
-        }))
-        .filter((d) => !!satellite.propagate(d.satrec, new Date()).position)
-        .slice(0, 1500);
+        const sats = tleData
+          .map(([name, ...tle]) => ({
+            satrec: satellite.twoline2satrec(...tle),
+            name: name.trim().replace(/^0 /, ''),
+          }))
+          .filter((d) => !!satellite.propagate(d.satrec, new Date()).position)
+          .slice(0, 1500);
 
         setSatData(sats);
       });
   }, []);
 
-  useEffect(() => {
-    // Add manual points
-    setManualPoints([
-        { name: 'Point 1', lat: 34.0522, lng: -118.2437, alt: 0.1, lngSpeed: 0.1, latSpeed: 0.05 }, 
-        { name: 'Point 2', lat: 40.7128, lng: -74.0060, alt: 0.15, lngSpeed: -0.1, latSpeed: 0.02 }, 
-        // ... add more points as needed
-    ]);
-  }, []);
-  useEffect(() => {
-    // Update manual points' position based on their speed attributes
-    setManualPoints((prevPoints) => {
-      return prevPoints.map(point => ({
-        ...point,
-        lat: point.lat + point.latSpeed,
-        lng: point.lng + point.lngSpeed,
-      }));
-    });
-  }, [time]);
-
   const objectsData = useMemo(() => {
+    if (!satData) return [];
+
     const gmst = satellite.gstime(time);
-    const existingSatellitesData = satData.map((d) => {
+    return satData.map((d) => {
       const eci = satellite.propagate(d.satrec, time);
       if (eci.position) {
         const gdPos = satellite.eciToGeodetic(eci.position, gmst);
@@ -124,43 +61,95 @@ function GlobeComponent() {
       }
       return d;
     });
+  }, [satData, time]);
+  const getObjectThreeObject = (d) => {
+    if (!globeRadius) return undefined;
 
-    // Adding manual points
-    const manualPointsData = manualPoints.map(pt => ({
-      ...pt,
-      type: 'manual'
-    }));
+    let geometry;
+    let color;
 
-    return [...manualPointsData, ...existingSatellitesData]; 
-  }, [satData, time, manualPoints]);
-
-  const getObject3D = (d) => {
-    if (d.type === 'manual') {
-      const manualGeometry = new THREE.SphereGeometry(
-        SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 5,
-        32,
-        32
+    if (d.isUserPoint) {
+      const actualRadius = d.radius || (SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 2);
+      geometry = new THREE.SphereGeometry(
+        actualRadius,
+        32,  // widthSegments
+        32   // heightSegments
       );
-      const manualMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
-      return new THREE.Mesh(manualGeometry, manualMaterial);
+      color = 'red';
     } else {
-      const satGeometry = new THREE.OctahedronGeometry(
+      geometry = new THREE.OctahedronGeometry(
         SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 2,
         0
       );
-      const satMaterial = new THREE.MeshLambertMaterial({
-        color: 'palegreen',
-        transparent: true,
-        opacity: 0.7,
-      });
-      return new THREE.Mesh(satGeometry, satMaterial);
+      color = 'palegreen';
     }
+
+    const material = new THREE.MeshLambertMaterial({
+      color,
+      transparent: true,
+      opacity: 0.7,
+    });
+
+    return new THREE.Mesh(geometry, material);
   };
 
+
+  const satObject = useMemo(() => {
+    if (!globeRadius) return undefined;
+  
+    const satGeometry = new THREE.OctahedronGeometry(
+      SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 2,
+      0
+    );
+  
+    // Update the color based on the 'isUserPoint' property of the last added satellite
+    const color = satData.length > 0 && satData[satData.length - 1].isUserPoint ? 'red' : 'palegreen';
+  
+    const satMaterial = new THREE.MeshLambertMaterial({
+      color,
+      transparent: true,
+      opacity: 0.7,
+    });
+    return new THREE.Mesh(satGeometry, satMaterial);
+  }, [globeRadius, satData]);
+  
+  
   useEffect(() => {
     setGlobeRadius(globeEl.current.getGlobeRadius());
     globeEl.current.pointOfView({ altitude: 3.5 });
   }, []);
+
+
+  const handleGlobeClick = async (event) => {
+    const { lat, lng } = event;
+
+    const satName = window.prompt('Enter satellite name:');
+    if (!satName) return; // Exit if no name entered
+
+    const enteredRadius = parseFloat(window.prompt('Enter radius (in km):'));
+    if (isNaN(enteredRadius)) return;
+
+    const newSat = {
+      satrec: satellite.twoline2satrec('1 00000U 00000A 00000.00000000 00000.00000000 00000.00000000 0.00000000 0.00000000 0.00000000 0', '2 00000 000.0000 000.0000 0000000 000.0000 000.0000 00.00000000000000'),
+      name: satName, // Use the user-input name
+      lat,
+      lng,
+      alt: 0,
+      radius: enteredRadius * globeRadius / EARTH_RADIUS_KM / 2,
+      isUserPoint: true,
+    };
+    /*const navSats = await fetchNavSats(lat, lng);
+    const imgSats = await fetchImgSats(lat, lng);
+    const comSats = await fetchComSats(lat, lng);
+    const weatherSats = await fetchWeatherSats(lat, lng);
+    console.log('Nav Sats:', navSats);
+    console.log('Img Sats:', imgSats);
+    console.log('Com Sats:', comSats);
+    console.log('Weather Sats:', weatherSats);*/
+
+    setSatData((prevSatData) => [...prevSatData, newSat]);
+};
+
 
   return (
     <div>
@@ -173,44 +162,27 @@ function GlobeComponent() {
         objectLng="lng"
         objectAltitude="alt"
         objectFacesSurface={false}
-        objectThreeObject={getObject3D}
-        customLayerData={polygonVertices.length > 1 ? [{}] : []}
-        customThreeObject={getPolygonLine}
+        objectThreeObject={getObjectThreeObject} // Changed this line
+        onGlobeClick={handleGlobeClick}
+
       />
-      {polygonVertices.map((vertex, index) => (
-        <div
-          key={index}
-          style={{
-            position: 'absolute',
-            top: vertex.y,
-            left: vertex.x,
-            fontSize: '12px',
-            fontFamily: 'sans-serif',
-            backgroundColor: 'yellow',
-            borderRadius: '50%',
-            width: '10px',
-            height: '10px',
-            transform: 'translate(-50%, -50%)'
-          }}
-        ></div>
-      ))}
-      <div 
+      <div
         style={{
-          position: 'absolute', 
-          fontSize: '12px', 
-          fontFamily: 'sans-serif', 
-          padding: '5px', 
-          borderRadius: '3px', 
-          backgroundColor: 'rgba(200, 200, 200, 0.1)', 
-          color: 'lavender', 
-          bottom: '10px', 
-          right: '10px'
-        }}>
+          position: 'absolute',
+          fontSize: '12px',
+          fontFamily: 'sans-serif',
+          padding: '5px',
+          borderRadius: '3px',
+          backgroundColor: 'rgba(200, 200, 200, 0.1)',
+          color: 'lavender',
+          bottom: '10px',
+          right: '10px',
+        }}
+      >
         {time.toString()}
       </div>
     </div>
   );
-
 }
 
 export default GlobeComponent;

@@ -5,12 +5,11 @@ import * as THREE from 'three';
 
 const EARTH_RADIUS_KM = 6371; // km
 const SAT_SIZE = 80; // km
-const TIME_STEP = 1; // per frame
+const TIME_STEP = 3 * 10; // per frame
 
 function GlobeComponent() {
   const globeEl = useRef();
   const [satData, setSatData] = useState([]);
-  const [manualPoints, setManualPoints] = useState([]);
   const [globeRadius, setGlobeRadius] = useState();
   const [time, setTime] = useState(new Date());
 
@@ -37,35 +36,18 @@ function GlobeComponent() {
           satrec: satellite.twoline2satrec(...tle),
           name: name.trim().replace(/^0 /, ''),
         }))
-        .filter((d) => !!satellite.propagate(d.satrec, new Date()).position)
-        .slice(0, 1500);
+          .filter((d) => !!satellite.propagate(d.satrec, new Date()).position)
+          .slice(0, 1500);
 
         setSatData(sats);
       });
   }, []);
 
-  useEffect(() => {
-    // Add manual points
-    setManualPoints([
-        { name: 'Point 1', lat: 34.0522, lng: -118.2437, alt: 0.1, lngSpeed: 0.1, latSpeed: 0.05 }, 
-        { name: 'Point 2', lat: 40.7128, lng: -74.0060, alt: 0.15, lngSpeed: -0.1, latSpeed: 0.02 }, 
-        // ... add more points as needed
-    ]);
-  }, []);
-  useEffect(() => {
-    // Update manual points' position based on their speed attributes
-    setManualPoints((prevPoints) => {
-      return prevPoints.map(point => ({
-        ...point,
-        lat: point.lat + point.latSpeed,
-        lng: point.lng + point.lngSpeed,
-      }));
-    });
-  }, [time]);
-
   const objectsData = useMemo(() => {
+    if (!satData) return [];
+
     const gmst = satellite.gstime(time);
-    const existingSatellitesData = satData.map((d) => {
+    return satData.map((d) => {
       const eci = satellite.propagate(d.satrec, time);
       if (eci.position) {
         const gdPos = satellite.eciToGeodetic(eci.position, gmst);
@@ -76,38 +58,22 @@ function GlobeComponent() {
       }
       return d;
     });
+  }, [satData, time]);
 
-    // Adding manual points
-    const manualPointsData = manualPoints.map(pt => ({
-      ...pt,
-      type: 'manual'
-    }));
+  const satObject = useMemo(() => {
+    if (!globeRadius) return undefined;
 
-    return [...manualPointsData, ...existingSatellitesData]; 
-  }, [satData, time, manualPoints]);
-
-  const getObject3D = (d) => {
-    if (d.type === 'manual') {
-      const manualGeometry = new THREE.SphereGeometry(
-        SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 5,
-        32,
-        32
-      );
-      const manualMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
-      return new THREE.Mesh(manualGeometry, manualMaterial);
-    } else {
-      const satGeometry = new THREE.OctahedronGeometry(
-        SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 2,
-        0
-      );
-      const satMaterial = new THREE.MeshLambertMaterial({
-        color: 'palegreen',
-        transparent: true,
-        opacity: 0.7,
-      });
-      return new THREE.Mesh(satGeometry, satMaterial);
-    }
-  };
+    const satGeometry = new THREE.OctahedronGeometry(
+      SAT_SIZE * globeRadius / EARTH_RADIUS_KM / 2,
+      0
+    );
+    const satMaterial = new THREE.MeshLambertMaterial({
+      color: 'palegreen',
+      transparent: true,
+      opacity: 0.7,
+    });
+    return new THREE.Mesh(satGeometry, satMaterial);
+  }, [globeRadius]);
 
   useEffect(() => {
     setGlobeRadius(globeEl.current.getGlobeRadius());
@@ -115,7 +81,7 @@ function GlobeComponent() {
   }, []);
 
   return (
-    <div>
+    <div style={{backgroundSize: 'cover', position: 'relative', width: '100%', height: '100vh' }}>
       <Globe
         ref={globeEl}
         globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
@@ -125,7 +91,9 @@ function GlobeComponent() {
         objectLng="lng"
         objectAltitude="alt"
         objectFacesSurface={false}
-        objectThreeObject={getObject3D}
+        objectThreeObject={satObject}
+        width="100%" // Set the globe's width to 100% of its container
+        height="100vh" // Set the globe's height to 100% of the viewport height
       />
       <div style={{ position: 'absolute', fontSize: '12px', fontFamily: 'sans-serif', padding: '5px', borderRadius: '3px', backgroundColor: 'rgba(200, 200, 200, 0.1)', color: 'lavender', bottom: '10px', right: '10px' }}>
         {time.toString()}
